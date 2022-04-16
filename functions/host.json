@@ -1,0 +1,27 @@
+{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "functions": [
+    "articles",
+    "user",
+    "users"
+  ],
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[2.*, 3.0.0)"
+  },
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "java-realworld-example-app",
+      "arguments": ["--server.port=%FUNCTIONS_CUSTOMHANDLER_PORT%"]
+    },
+    "enableForwardingHttpRequest": true
+  }
+}
