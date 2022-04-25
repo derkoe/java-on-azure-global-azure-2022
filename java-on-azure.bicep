@@ -32,6 +32,16 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   }
 }
 
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
+  name: 'law-${appNameSuffix}'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018' 
+    }
+  }
+}
+
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: 'appi-${appNameSuffix}'
   location: location
@@ -40,15 +50,28 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
     Application_Type: 'web'
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
+    WorkspaceResourceId: logAnalytics.id
+    IngestionMode: 'LogAnalytics'
   }
 }
 
-resource plan 'Microsoft.Web/serverfarms@2020-12-01' = {
-  name: 'asp-${appNameSuffix}'
+resource funcPlan 'Microsoft.Web/serverfarms@2020-12-01' = {
+  name: 'asp-func-${appNameSuffix}'
   location: location
   kind: 'functionapp'
   sku: {
     name: 'Y1'
+  }
+  properties: {
+    reserved: true
+  }
+}
+
+resource webappPlan 'Microsoft.Web/serverfarms@2020-12-01' = {
+  name: 'asp-webapp-${appNameSuffix}'
+  location: location
+  sku: {
+    name: 'P1V2'
   }
   properties: {
     reserved: true
@@ -60,7 +83,7 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
   location: location
   kind: 'functionapp'
   properties: {
-    serverFarmId: plan.id
+    serverFarmId: funcPlan.id
     siteConfig: {
       appSettings: [
         {
@@ -86,6 +109,32 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: '~4'
+        }
+      ]
+    }
+    httpsOnly: true
+  }
+}
+
+resource app 'Microsoft.Web/sites@2020-12-01' = {
+  name: 'webapp-java-${appNameSuffix}'
+  location: location
+  properties: {
+    serverFarmId: webappPlan.id
+    siteConfig: {
+      linuxFxVersion: 'JAVA|17-java17'
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: 'InstrumentationKey=${appInsights.properties.InstrumentationKey};IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/'
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~3'
         }
       ]
     }

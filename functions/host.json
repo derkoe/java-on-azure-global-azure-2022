@@ -19,7 +19,7 @@
   },
   "customHandler": {
     "description": {
-      "defaultExecutablePath": "java-realworld-example-app",
+      "defaultExecutablePath": "java-realworld-app",
       "arguments": ["--server.port=%FUNCTIONS_CUSTOMHANDLER_PORT%"]
     },
     "enableForwardingHttpRequest": true
