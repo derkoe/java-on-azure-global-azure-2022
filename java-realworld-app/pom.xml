@@ -15,6 +15,7 @@
     <properties>
         <java.version>17</java.version>
         <azure-identity.version>1.5.0</azure-identity.version>
+        <native-image>false</native-image>
     </properties>
     <dependencies>
         <dependency>
@@ -74,6 +75,15 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>native</id>
+            <properties>
+                <native-image>true</native-image>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -83,6 +93,9 @@
                     <excludeDevtools>true</excludeDevtools>
                     <image>
                         <builder>paketobuildpacks/builder:tiny</builder>
+                        <bindings>
+                            <binding>$(pwd)/java/application-insights/binding:/platform/bindings/application-insights</binding>
+                        </bindings>
                         <env>
                             <BP_NATIVE_IMAGE>${native-image}</BP_NATIVE_IMAGE>
                         </env>
