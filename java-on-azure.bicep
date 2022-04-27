@@ -142,5 +142,35 @@ resource app 'Microsoft.Web/sites@2020-12-01' = {
   }
 }
 
+resource appDocker 'Microsoft.Web/sites@2020-12-01' = {
+  name: 'webapp-docker-${appNameSuffix}'
+  location: location
+  properties: {
+    serverFarmId: webappPlan.id
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|ghcr.io/derkoe/azure-java-realworld-app:latest'
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: 'InstrumentationKey=${appInsights.properties.InstrumentationKey};IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/'
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'WEBSITES_PORT'
+          value: '8080'
+        }
+      ]
+    }
+    httpsOnly: true
+  }
+}
+
 output functionAppName string = functionApp.name
 output functionAppHostName string = functionApp.properties.defaultHostName
