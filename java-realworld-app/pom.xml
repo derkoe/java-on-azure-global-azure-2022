@@ -92,12 +92,17 @@
                 <configuration>
                     <excludeDevtools>true</excludeDevtools>
                     <image>
+                        <name>ghcr.io/derkoe/azure-java-realworld-app</name>
                         <builder>paketobuildpacks/builder:tiny</builder>
+                        <buildpacks>
+                            <buildpack>gcr.io/paketo-buildpacks/java-azure</buildpack>
+                        </buildpacks>
                         <bindings>
-                            <binding>$(pwd)/java/application-insights/binding:/platform/bindings/application-insights</binding>
+                            <binding>${project.basedir}/src/main/bindings:/platform/bindings</binding>
                         </bindings>
                         <env>
                             <BP_NATIVE_IMAGE>${native-image}</BP_NATIVE_IMAGE>
+                            <SERVICE_BINDING_ROOT>/platform/bindings</SERVICE_BINDING_ROOT>
                         </env>
                     </image>
                 </configuration>
