@@ -37,7 +37,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
   location: location
   properties: {
     sku: {
-      name: 'PerGB2018' 
+      name: 'PerGB2018'
     }
   }
 }
@@ -172,5 +172,66 @@ resource appDocker 'Microsoft.Web/sites@2020-12-01' = {
   }
 }
 
-output functionAppName string = functionApp.name
-output functionAppHostName string = functionApp.properties.defaultHostName
+// replace with 'Microsoft.Web/kubeEnvironments@2021-03-01' when it works
+resource containerappEnvironment 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
+  name: 'cae-${appNameSuffix}'
+  location: location
+  properties: {
+    #disable-next-line BCP037
+    type: 'Managed'
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logAnalytics.properties.customerId
+        sharedKey: logAnalytics.listKeys().primarySharedKey
+      }
+    }
+  }
+}
+
+// TODO replace with 'Microsoft.Web/containerApps@2021-03-01' when it works
+resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
+  name: 'capp-${appNameSuffix}'
+  location: location
+  properties: {
+    managedEnvironmentId: containerappEnvironment.id
+    configuration: {
+      activeRevisionsMode: 'single'
+      secrets: []
+      registries: []
+      ingress: {
+        external: true
+        targetPort: 8080
+        transport: 'auto'
+      }
+    }
+    template: {
+      containers: [
+        {
+          name: 'realworld-app'
+          image: 'ghcr.io/derkoe/azure-java-realworld-app:latest'
+          command: []
+          env: [
+            {
+              name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+              value: appInsights.properties.InstrumentationKey
+            }
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: 'InstrumentationKey=${appInsights.properties.InstrumentationKey};IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/'
+            }    
+          ]
+          resources: {
+            #disable-next-line BCP036
+            cpu: '.5'
+            memory: '1Gi'
+          }
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 1
+      }
+    }
+  }
+}
