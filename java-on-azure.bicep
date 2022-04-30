@@ -6,6 +6,11 @@ param appNameSuffix string = uniqueString(resourceGroup().id)
 
 var storageAccountName = 'fnstor${replace(appNameSuffix, '-', '')}'
 
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: 'uai-${appNameSuffix}'
+  location: location
+}
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: storageAccountName
   location: location
@@ -82,6 +87,12 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
   name: 'fn-${appNameSuffix}'
   location: location
   kind: 'functionapp'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${identity.id}': {}
+    }
+  }
   properties: {
     serverFarmId: funcPlan.id
     siteConfig: {
@@ -119,6 +130,12 @@ resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
 resource app 'Microsoft.Web/sites@2020-12-01' = {
   name: 'webapp-java-${appNameSuffix}'
   location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${identity.id}': {}
+    }
+  }
   properties: {
     serverFarmId: webappPlan.id
     siteConfig: {
@@ -172,13 +189,10 @@ resource appDocker 'Microsoft.Web/sites@2020-12-01' = {
   }
 }
 
-// replace with 'Microsoft.Web/kubeEnvironments@2021-03-01' when it works
 resource containerappEnvironment 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
   name: 'cae-${appNameSuffix}'
   location: location
   properties: {
-    #disable-next-line BCP037
-    type: 'Managed'
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
@@ -189,7 +203,6 @@ resource containerappEnvironment 'Microsoft.App/managedEnvironments@2022-01-01-p
   }
 }
 
-// TODO replace with 'Microsoft.Web/containerApps@2021-03-01' when it works
 resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
   name: 'capp-${appNameSuffix}'
   location: location
