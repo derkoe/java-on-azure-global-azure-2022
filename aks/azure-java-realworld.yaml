@@ -1,0 +1,108 @@
+---
+# Source: web-application/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: realworld-web-application
+  labels:
+    app.kubernetes.io/name: web-application
+    helm.sh/chart: web-application-2.3.0
+    app.kubernetes.io/instance: realworlod
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: web-application
+    app.kubernetes.io/instance: realworld
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realworld-web-application
+  labels:
+    app: realworld
+    app.kubernetes.io/name: web-application
+    helm.sh/chart: web-application-2.3.0
+    app.kubernetes.io/instance: realworld
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: web-application
+      app.kubernetes.io/instance: realworld
+  template:
+    metadata:
+      labels:
+        app: realworld
+        app.kubernetes.io/name: web-application
+        app.kubernetes.io/instance: realworld
+    spec:
+      containers:
+        - name: web-application
+          image: "ghcr.io/derkoe/azure-java-realworld-app:latest"
+          imagePullPolicy: Always
+          envFrom:
+          env:
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          resources:
+            limits:
+              cpu: 300m
+              memory: 700Mi
+            requests:
+              cpu: 10m
+              memory: 512Mi
+
+--- 
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: realworld-web-application
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: realworld.azuretest.xyz
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: realworld-web-application
+            port:
+              number: 80
+  ingressClassName: nginx

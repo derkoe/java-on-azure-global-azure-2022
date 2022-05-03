@@ -232,7 +232,7 @@ resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: 'InstrumentationKey=${appInsights.properties.InstrumentationKey};IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/'
-            }    
+            }
           ]
           resources: {
             #disable-next-line BCP036
@@ -246,5 +246,27 @@ resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
         maxReplicas: 1
       }
     }
+  }
+}
+
+resource aks 'Microsoft.ContainerService/managedClusters@2022-03-01' = {
+  name: 'aks-${appNameSuffix}'
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    dnsPrefix: appNameSuffix
+    enableRBAC: true
+    agentPoolProfiles: [
+      {
+        name: 'default'
+        mode: 'System'
+        count: 1
+        osDiskType: 'Ephemeral'
+        osDiskSizeGB: 50
+        vmSize: 'standard_d2s_v3'
+      }
+    ]
   }
 }

@@ -24,6 +24,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
@@ -94,9 +98,6 @@
                     <image>
                         <name>ghcr.io/derkoe/azure-java-realworld-app</name>
                         <builder>paketobuildpacks/builder:tiny</builder>
-                        <buildpacks>
-                            <buildpack>gcr.io/paketo-buildpacks/java-azure</buildpack>
-                        </buildpacks>
                         <bindings>
                             <binding>${project.basedir}/src/main/bindings:/platform/bindings</binding>
                         </bindings>
