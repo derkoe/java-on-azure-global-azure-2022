@@ -16,6 +16,7 @@
         <java.version>17</java.version>
         <azure-identity.version>1.5.0</azure-identity.version>
         <native-image>false</native-image>
+        <image-name>ghcr.io/derkoe/azure-java-realworld-app:latest</image-name>
     </properties>
     <dependencies>
         <dependency>
@@ -88,6 +89,7 @@
             <id>native</id>
             <properties>
                 <native-image>true</native-image>
+                <image-name>ghcr.io/derkoe/azure-java-realworld-app:native</image-name>
             </properties>
         </profile>
     </profiles>
@@ -100,7 +102,7 @@
                 <configuration>
                     <excludeDevtools>true</excludeDevtools>
                     <image>
-                        <name>ghcr.io/derkoe/azure-java-realworld-app</name>
+                        <name>${image-name}</name>
                         <builder>paketobuildpacks/builder:tiny</builder>
                         <bindings>
                             <binding>${project.basedir}/src/main/bindings:/platform/bindings</binding>
