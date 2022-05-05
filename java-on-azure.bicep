@@ -4,6 +4,8 @@ param location string = resourceGroup().location
 @description('Suffix for function app, storage account, and key vault names.')
 param appNameSuffix string = uniqueString(resourceGroup().id)
 
+param dbPassword string = newGuid()
+
 var storageAccountName = 'fnstor${replace(appNameSuffix, '-', '')}'
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
@@ -270,3 +272,23 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-03-01' = {
     ]
   }
 }
+
+resource db 'Microsoft.DBforPostgreSQL/servers@2017-12-01' = {
+  name: 'psql-${appNameSuffix}'
+  location: location
+  sku: {
+    capacity: 1
+    name: 'B_Gen5_1'
+    tier: 'Basic'
+    family: 'Gen5'
+  }
+  properties: {
+    version: '11'
+    createMode: 'Default'
+    administratorLogin: 'demo_pg_admin'
+    administratorLoginPassword: dbPassword
+  }
+}
+
+#disable-next-line outputs-should-not-contain-secrets
+output databasePassword string = dbPassword
