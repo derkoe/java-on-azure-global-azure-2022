@@ -19,7 +19,7 @@ jobs:
       - name: Build
         run: cd java-realworld-app && mvn -B install
       - name: Build image
-        run: cd java-realworld-app && mvn -B spring-boot:build-image
+        run: cd java-realworld-app && mvn -B -Pflyway spring-boot:build-image
       - name: Build native image
         run: cd java-realworld-app && mvn -B -Pnative spring-boot:build-image
       - name: Push image to ghcr.io

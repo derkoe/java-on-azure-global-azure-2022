@@ -11,7 +11,8 @@ public class AzureHikariDataSource extends HikariDataSource {
     public static final TokenRequestContext TOKEN_CONTEXT =
       new TokenRequestContext().addScopes("https://ossrdbms-aad.database.windows.net");
   
-    private TokenCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder().build();
+    private TokenCredential managedIdentityCredential = new ManagedIdentityCredentialBuilder()
+      .clientId(System.getenv("IDENTITY_CLIENT_ID")).build();
     private AccessToken token;
   
     public AzureHikariDataSource() {
