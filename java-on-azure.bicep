@@ -44,6 +44,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
     sku: {
       name: 'PerGB2018'
     }
+    retentionInDays: 30
   }
 }
 
@@ -214,8 +215,15 @@ resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
       registries: []
       ingress: {
         external: true
+        allowInsecure: false
         targetPort: 8080
         transport: 'auto'
+        traffic: [
+          {
+            latestRevision: true
+            weight: 100
+          }
+        ]
       }
     }
     template: {
@@ -236,8 +244,8 @@ resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
           ]
           resources: {
             #disable-next-line BCP036
-            cpu: '.5'
-            memory: '1Gi'
+            cpu: '1'
+            memory: '2Gi'
           }
         }
       ]
@@ -256,8 +264,16 @@ resource aks 'Microsoft.ContainerService/managedClusters@2022-03-01' = {
     type: 'SystemAssigned'
   }
   properties: {
+    kubernetesVersion: '1.22.6'
     dnsPrefix: appNameSuffix
     enableRBAC: true
+    networkProfile: {
+      ipFamilies: [
+        'IPv4'
+      ]
+      loadBalancerSku: 'standard'
+    }
+    nodeResourceGroup: 'rg-java-on-azure-aks'
     agentPoolProfiles: [
       {
         name: 'default'
