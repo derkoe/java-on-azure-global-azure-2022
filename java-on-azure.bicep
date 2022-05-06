@@ -163,6 +163,12 @@ resource app 'Microsoft.Web/sites@2020-12-01' = {
 resource appDocker 'Microsoft.Web/sites@2020-12-01' = {
   name: 'webapp-docker-${appNameSuffix}'
   location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${identity.id}': {}
+    }
+  }
   properties: {
     serverFarmId: webappPlan.id
     siteConfig: {
