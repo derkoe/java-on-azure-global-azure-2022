@@ -28,6 +28,16 @@ After building the app run:
 ./deploy-webapp.sh
 ```
 
-## Deploy Function
+## Deploy Function App
 
-TODO
+To deploy the function you'll have to create a GraalVM native-image of the application first. Un the `java-realworld-app` folder run:
+
+```
+mvn -Pnative spring-boot:build-image
+```
+
+Then copy the binary out of the docker image to the functions folder and run:
+
+```
+./deploy-function.sh
+```

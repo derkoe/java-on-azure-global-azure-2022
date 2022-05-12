@@ -250,9 +250,38 @@ resource containerapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
           ]
           resources: {
             #disable-next-line BCP036
-            cpu: '1'
-            memory: '2Gi'
+            cpu: '.5'
+            memory: '1Gi'
           }
+          probes: [
+            {
+              type: 'liveness'
+              httpGet: {
+                port: 8080
+                path: '/actuator/health/liveness'
+                scheme: 'HTTP'
+              }
+            }
+            {
+              type: 'readiness'
+              httpGet: {
+                port: 8080
+                path: '/actuator/health/readiness'
+                scheme: 'HTTP'
+              }
+              initialDelaySeconds: 30
+            }
+            {
+              type: 'startup'
+              httpGet: {
+                port: 8080
+                path: '/actuator/health/liveness'
+                scheme: 'HTTP'
+              }
+              periodSeconds: 15
+              failureThreshold: 10
+            }
+          ]
         }
       ]
       scale: {
